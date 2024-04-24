@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+service ContentProvider_Server{
+    rpc TransmitFile (TransmitFileRequest) returns (TransmitFileResponse);
+    rpc GetFile (GetFileRequest) returns (GetFileResponse);
+    rpc receiveTokenRequest (requestTokenRequest) returns (requestTokenResponse);
+    rpc receiveToken (sendTokenRequest) returns (sendTokenResponse);
+}
+
+message TransmitFileRequest{
+    string fileName = 1;
+    string fileContent = 2;
+}
+
+message TransmitFileResponse{
+    string transmitStatus = 1;
+}
+
+message GetFileRequest{
+    string fileName = 1;   
+}
+
+message GetFileResponse{
+    string fileName = 1; 
+    string fileContent = 2;
+}
+
+message requestTokenRequest{
+    int32 processID = 1;
+    int32 seqNumber = 2; 
+}
+
+message requestTokenResponse{
+    oneof response {
+        string requestStatus = 1;
+        sendTokenRequest token = 2;
+    }
+    
+}
+
+message sendTokenRequest{
+    repeated int32 Q = 1;
+    repeated int32 LN = 2;
+}
+
+message sendTokenResponse{
+    string requestStatus = 1;
+}
+
