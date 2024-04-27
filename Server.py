@@ -16,6 +16,9 @@ class FileTransmitService(CP_Server_pb2_grpc.ContentProvider_ServerServicer):
             for fileName in fileList:
                 fileHash = hashlib.new("sha256", fileread.fileRead(fileName, "ServerFiles").encode()).hexdigest()
                 if(requestHash == fileHash):
+                    mappingDetails =  fileread.readMappingFile()
+                    mappingDetails[request.fileName] = fileName
+                    fileread.writeToMappingFile(mappingDetails)
                     response = CP_Server_pb2.TransmitFileResponse(transmitStatus = 'File Content Already Exist!!!')
                     return response
                 
@@ -30,8 +33,14 @@ class FileTransmitService(CP_Server_pb2_grpc.ContentProvider_ServerServicer):
             response = CP_Server_pb2.GetFileResponse(fileName = request.fileName, fileContent = fileContent)
             return response
         else:
-            response = CP_Server_pb2.GetFileResponse(fileName = request.fileName, fileContent = "File Not Found in server")
-            return response
+            mappingDetails =  fileread.readMappingFile()
+            if(request.fileName in mappingDetails):
+                fileContent = fileread.fileRead(mappingDetails[request.fileName], "ServerFiles")
+                response = CP_Server_pb2.GetFileResponse(fileName = request.fileName, fileContent = fileContent)
+                return response
+            else:
+                response = CP_Server_pb2.GetFileResponse(fileName = request.fileName, fileContent = "File Not Found in server")
+                return response
 
 def serve(serverPort):
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))

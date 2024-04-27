@@ -32,12 +32,14 @@ TOKEN = {'Q':[], 'LN':[0,0,0]}
 
 class ContentProviderService(CP_Server_pb2_grpc.ContentProvider_ServerServicer):
     def receiveTokenRequest(self, request, context):
+        print("Received Token request from Content Provider : " + request.processID)
         global HAS_TOKEN
         global IS_IDLE
         RN[request.processID] = max(RN[request.processID], request.seqNumber)
         response = None
 
         if(RN[request.processID] == TOKEN["LN"][request.processID] + 1  & HAS_TOKEN == 1 & IS_IDLE == 1):
+            print("Sending Token To Content Provider : " + request.processID)
             HAS_TOKEN = 0
             TOKEN["Q"].append(request.processID)
             response = CP_Server_pb2.requestTokenResponse(token = TOKEN)  
@@ -48,6 +50,7 @@ class ContentProviderService(CP_Server_pb2_grpc.ContentProvider_ServerServicer):
         
 
     def receiveToken(self, request, context):
+        print("Received Token")
         global HAS_TOKEN
         global IS_IDLE
         TOKEN["Q"] = request.Q
@@ -57,12 +60,14 @@ class ContentProviderService(CP_Server_pb2_grpc.ContentProvider_ServerServicer):
         return response
     
 def sendTokenRequest(ip_address):
+    print("Sending Token Request to : " + ip_address)
     global HAS_TOKEN
     channel = grpc.insecure_channel(ip_address)
     stub = CP_Server_pb2_grpc.ContentProvider_ServerStub(channel)
     response = stub.receiveTokenRequest(CP_Server_pb2.requestTokenRequest(processID = PROCESS_ID, seqNumber = RN[PROCESS_ID]))
     channel.close()
     if(response.requestStatus != "Success"):
+        print("Received Token from : " + ip_address)
         data = MessageToDict(
                 response.token,
                 preserving_proto_field_name=True,
@@ -111,12 +116,14 @@ def transmitFile(fileName, fileContent):
 
     IS_IDLE = 0
 
+    print("Sending File to Server...")
     channel = grpc.insecure_channel(SERVER_IP + ':' + SERVER_PORT)
     stub = CP_Server_pb2_grpc.ContentProvider_ServerStub(channel)
     response = stub.TransmitFile(CP_Server_pb2.TransmitFileRequest(fileName = fileName, fileContent = fileContent))
     channel.close()
     print(response.transmitStatus)
 
+    print("Updating LN and Queue...")
     TOKEN["LN"][PROCESS_ID] = RN[PROCESS_ID]
     if(TOKEN["Q"][0] == PROCESS_ID):
         queue = collections.deque(TOKEN["Q"])
@@ -129,6 +136,7 @@ def transmitFile(fileName, fileContent):
 
 
     if(len(TOKEN["Q"]) > 0):
+        print("Sending Token to Content Provider : " + TOKEN["Q"][0])
         HAS_TOKEN = 0
         channel = grpc.insecure_channel( IP_LIST[TOKEN["Q"][0]] )
         stub = CP_Server_pb2_grpc.ContentProvider_ServerStub(channel)
@@ -160,7 +168,7 @@ def serve(serverPort):
         server.stop(0)
 
 if __name__ == '__main__':
-    PROCESS_ID = int(input('Enter Content Provider Name'))
+    PROCESS_ID = int(input('Enter Content Provider Name : '))
     PORT = CONFIG_FILE.get(str(PROCESS_ID), "port")
     
     HAS_TOKEN = int(CONFIG_FILE.get(str(PROCESS_ID), "hasIdleToken"))

@@ -1,5 +1,6 @@
 import os
 import sys
+import json
 
 def getFileList():
     dir = str(os.getcwd())
@@ -42,3 +43,23 @@ def fileWrite(fileName, fileContent):
             file.write(fileContent)
     except Exception as ex:
         print(ex)
+
+def readMappingFile():
+    dir = str(os.getcwd())
+    pathJoin = "\\fileMapping.json"
+    if sys.platform.startswith('linux'):
+        pathJoin = "/fileMapping.json" 
+    path = dir + pathJoin 
+    input_file = open(path)
+    json_array = json.load(input_file)
+    return json_array
+
+def writeToMappingFile(data):
+    dir = str(os.getcwd())
+    pathJoin = "\\fileMapping.json"
+    if sys.platform.startswith('linux'):
+        pathJoin = "/fileMapping.json" 
+    path = dir + pathJoin 
+
+    out_file = open(path, "w")
+    json.dump(data, out_file)
