@@ -11,6 +11,7 @@ import json
 from google.protobuf.json_format import (
     MessageToDict,
 )
+import time
 
 
 CONFIG_FILE = configparser.ConfigParser()
@@ -72,7 +73,7 @@ def sendTokenRequest(ip_address):
                 response.token,
                 preserving_proto_field_name=True,
                 use_integers_for_enums=False,
-                including_default_value_fields=True,
+                #including_default_value_fields=True,
                 )
         TOKEN["Q"] = data["Q"]
         TOKEN["LN"] = data["LN"]
@@ -116,6 +117,7 @@ def transmitFile(fileName, fileContent):
     IS_IDLE = 0
 
     print("Sending File to Server...")
+    time.sleep(20)
     channel = grpc.insecure_channel(SERVER_IP + ':' + SERVER_PORT)
     stub = CP_Server_pb2_grpc.ContentProvider_ServerStub(channel)
     response = stub.TransmitFile(CP_Server_pb2.TransmitFileRequest(fileName = fileName, fileContent = fileContent))
