@@ -32,14 +32,14 @@ TOKEN = {'Q':[], 'LN':[0,0,0]}
 
 class ContentProviderService(CP_Server_pb2_grpc.ContentProvider_ServerServicer):
     def receiveTokenRequest(self, request, context):
-        print("Received Token request from Content Provider : " + request.processID)
+        print("Received Token request from Content Provider : " + str(request.processID))
         global HAS_TOKEN
         global IS_IDLE
         RN[request.processID] = max(RN[request.processID], request.seqNumber)
         response = None
 
         if(RN[request.processID] == TOKEN["LN"][request.processID] + 1  & HAS_TOKEN == 1 & IS_IDLE == 1):
-            print("Sending Token To Content Provider : " + request.processID)
+            print("Sending Token To Content Provider : " + str(request.processID))
             HAS_TOKEN = 0
             TOKEN["Q"].append(request.processID)
             response = CP_Server_pb2.requestTokenResponse(token = TOKEN)  
@@ -77,7 +77,6 @@ def sendTokenRequest(ip_address):
         TOKEN["Q"] = data["Q"]
         TOKEN["LN"] = data["LN"]
         HAS_TOKEN = 1
-    exit(0)
 
 
 def transmitFile(fileName, fileContent):
@@ -131,12 +130,13 @@ def transmitFile(fileName, fileContent):
         TOKEN["Q"] = list(queue)
 
     for PID in range (0, len(RN) ):
-        if(PID != PROCESS_ID & PID not in TOKEN["Q"]  & RN[PID] == TOKEN["LN"][PID] + 1):
+        is_not_in_queue = (PID not in TOKEN["Q"])
+        if(PID != PROCESS_ID & is_not_in_queue  & RN[PID] == (TOKEN["LN"][PID] + 1)):
             TOKEN["Q"].append(PID)
 
 
     if(len(TOKEN["Q"]) > 0):
-        print("Sending Token to Content Provider : " + TOKEN["Q"][0])
+        print("Sending Token to Content Provider : " + str(TOKEN["Q"][0]))
         HAS_TOKEN = 0
         channel = grpc.insecure_channel( IP_LIST[TOKEN["Q"][0]] )
         stub = CP_Server_pb2_grpc.ContentProvider_ServerStub(channel)

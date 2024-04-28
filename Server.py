@@ -15,12 +15,17 @@ class FileTransmitService(CP_Server_pb2_grpc.ContentProvider_ServerServicer):
             requestHash = hashlib.new("sha256", request.fileContent.encode()).hexdigest()
             for fileName in fileList:
                 fileHash = hashlib.new("sha256", fileread.fileRead(fileName, "ServerFiles").encode()).hexdigest()
+
                 if(requestHash == fileHash):
-                    mappingDetails =  fileread.readMappingFile()
-                    mappingDetails[request.fileName] = fileName
-                    fileread.writeToMappingFile(mappingDetails)
-                    response = CP_Server_pb2.TransmitFileResponse(transmitStatus = 'File Content Already Exist!!!')
-                    return response
+                    if(request.fileName == fileName):
+                        response = CP_Server_pb2.TransmitFileResponse(transmitStatus = 'File Already Exist!!!')
+                        return response
+                    elif(request.fileName != fileName ):
+                        mappingDetails =  fileread.readMappingFile()
+                        mappingDetails[request.fileName] = fileName
+                        fileread.writeToMappingFile(mappingDetails)
+                        response = CP_Server_pb2.TransmitFileResponse(transmitStatus = 'File Content Already Exist!!! Mapping Done !!!')
+                        return response
                 
         fileread.fileWrite(request.fileName, request.fileContent)
         response = CP_Server_pb2.TransmitFileResponse(transmitStatus = 'Success')
