@@ -147,7 +147,7 @@ def transmitFile(fileName, fileContent):
         stub = CP_Server_pb2_grpc.ContentProvider_ServerStub(channel)
         response = stub.receiveToken(CP_Server_pb2.sendTokenRequest(Q = TOKEN["Q"], LN = TOKEN["LN"]))
         channel.close()
-        print(response.transmitStatus)
+        print(response.requestStatus)
 
     IS_IDLE = 1
 
