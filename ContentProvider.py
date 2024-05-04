@@ -126,10 +126,12 @@ def transmitFile(fileName, fileContent):
 
     print("Updating LN and Queue...")
     TOKEN["LN"][PROCESS_ID] = RN[PROCESS_ID]
-    if(TOKEN["Q"][0] == PROCESS_ID):
-        queue = collections.deque(TOKEN["Q"])
-        queue.popleft()
-        TOKEN["Q"] = list(queue)
+
+    if(len(TOKEN["Q"]) > 0):
+        if(TOKEN["Q"][0] == PROCESS_ID):
+            queue = collections.deque(TOKEN["Q"])
+            queue.popleft()
+            TOKEN["Q"] = list(queue)
 
     for PID in range (0, len(RN) ):
         is_not_in_queue = (PID not in TOKEN["Q"])
