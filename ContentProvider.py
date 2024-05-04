@@ -140,6 +140,7 @@ def transmitFile(fileName, fileContent):
 
 
     if(len(TOKEN["Q"]) > 0):
+        print("Current Queue : " + str(TOKEN["Q"]))
         print("Sending Token to Content Provider : " + str(TOKEN["Q"][0]))
         HAS_TOKEN = 0
         channel = grpc.insecure_channel( IP_LIST[TOKEN["Q"][0]] )
